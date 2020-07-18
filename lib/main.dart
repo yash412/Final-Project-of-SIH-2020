@@ -1,10 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:mongo_dart/mongo_dart.dart';
+import 'package:mongo_dart/mongo_dart.dart' as dart_mongo;
 
 final TextEditingController _pass = TextEditingController();
 final TextEditingController _confirmPass = TextEditingController();
 String _email;
+var name;
+var dob;
+var phone;
+var email;
+var pass;
+var cPass;
+var loc;
 void main() => runApp(new MyApp());
+
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -14,35 +24,22 @@ class MyApp extends StatelessWidget {
       theme: new ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: new MyHomePage(),
+      home: new Registration(),
     );
   }
 }
 
-class MyHomePage extends StatelessWidget {
-
-  final GlobalKey<FormState> _formKey = new GlobalKey<FormState>();
-  var _offices = ['',
-    'xyz,bhuldana,Maharashtra',
-    'lmn,akola,Maharashtra',
-    'stu,akola,Maharashtra',
-    'abc,ernakulam,Kerala',
-    'uvw,kucci,Assam',
-    'pqr,jabalpur,Madhaya pradesh'];
-  var _currentItemSelected = '';
-
+class Registration extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return new Scaffold(
       appBar: new AppBar(
         title: Text('Registration form'),
-
       ),
       body: new SafeArea(
           top: false,
           bottom: false,
           child: new Form(
-              key: _formKey,
               autovalidate: true,
               child: new ListView(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -53,6 +50,11 @@ class MyHomePage extends StatelessWidget {
                       hintText: 'Enter your first and last name',
                       labelText: 'Name',
                     ),
+                    onFieldSubmitted: (text) {
+                      print("First text field: $text");
+                      name = text;
+                      print(name);
+                    },
                   ),
                   new TextFormField(
                     decoration: const InputDecoration(
@@ -61,9 +63,12 @@ class MyHomePage extends StatelessWidget {
                       labelText: 'Dob',
                     ),
                     keyboardType: TextInputType.datetime,
+                    onFieldSubmitted: (text) {
+                      print("First text field: $text");
+                      dob = text;
+                      print(dob);
+                    },
                   ),
-
-
                   new TextFormField(
                     decoration: const InputDecoration(
                       icon: const Icon(Icons.phone),
@@ -74,6 +79,11 @@ class MyHomePage extends StatelessWidget {
                     inputFormatters: [
                       WhitelistingTextInputFormatter.digitsOnly,
                     ],
+                    onFieldSubmitted: (text) {
+                      print("First text field: $text");
+                      phone = text;
+                      print(phone);
+                    },
                   ),
                   new TextFormField(
                     decoration: const InputDecoration(
@@ -85,11 +95,14 @@ class MyHomePage extends StatelessWidget {
                     validator: (val) =>
                     !val.contains('@') ? 'Invalid Email' : null,
                     onSaved: (val) => _email = val,
+                    onFieldSubmitted: (text) {
+                      print("First text field: $text");
+                      email = text;
+                      print(email);
+                    },
                   ),
-
                   new TextFormField(
                     controller: _pass,
-
                     decoration: const InputDecoration(
                       icon: const Icon(Icons.add_circle_outline),
                       hintText: 'Enter password',
@@ -97,14 +110,16 @@ class MyHomePage extends StatelessWidget {
                     ),
                     keyboardType: TextInputType.visiblePassword,
                     obscureText: true,
+                    onFieldSubmitted: (text) {
+                      print("First text field: $text");
+                      pass = text;
+                      print(pass);
+                    },
                   ),
-
                   new TextFormField(
                     controller: _confirmPass,
-                    validator: (val){
-
-                      if (val !=_pass.text)
-                        return'Not Match';
+                    validator: (val) {
+                      if (val != _pass.text) return 'Not Match';
                       return null;
                     },
                     decoration: const InputDecoration(
@@ -114,51 +129,55 @@ class MyHomePage extends StatelessWidget {
                     ),
                     keyboardType: TextInputType.visiblePassword,
                     obscureText: true,
+                    onFieldSubmitted: (text) {
+                      print("First text field: $text");
+                      cPass = text;
+                      print(cPass);
+                    },
                   ),
-
                   new TextFormField(
                     decoration: const InputDecoration(
                       icon: const Icon(Icons.add_location),
                       hintText: 'Enter your office location',
                       labelText: 'Office location',
                     ),
+                    onFieldSubmitted: (text) {
+                      print("First text field: $text");
+                      loc = text;
+                      print(loc);
+                    },
                   ),
                   new Container(
-                    padding: const EdgeInsets.only( top: 40.0),
+                    padding: const EdgeInsets.only(top: 40.0),
                     width: 250.0,
                     height: 85.0,
-
                     child: new RaisedButton(
                         child: Text('Add Faces'),
-
-                        onPressed: (){
+                        onPressed: () {
 
                         }),
                   ),
-
-
                   new Container(
-                    padding: const EdgeInsets.only( top: 40.0),
+                    padding: const EdgeInsets.only(top: 40.0),
                     width: 250.0,
                     height: 85.0,
-
                     child: new RaisedButton(
-                        color: Colors.red,
-                        child:  Text(
-                          "Submit",
-                          style: TextStyle(
-                              fontSize: 20.0,
-                              color:Colors.white,
-                              fontFamily:'Raleway',
-                              fontWeight: FontWeight.w700
-                          ),
-                        ),
-                        elevation: 9.0,
-                        onPressed: () => bookFlight(context)
+                      color: Colors.red,
+                      child: Text(
+                        "Submit",
+                        style: TextStyle(
+                            fontSize: 20.0,
+                            color: Colors.white,
+                            fontFamily: 'Raleway',
+                            fontWeight: FontWeight.w700),
+                      ),
+                      elevation: 9.0,
+                      onPressed: () {
+                        bookFlight(context);
+                        DataColl();
+                      },
                     ),
                   ),
-
-
                 ],
               ))),
     );
@@ -170,10 +189,25 @@ class MyHomePage extends StatelessWidget {
     );
 
     showDialog(
-        context: context,
-        builder: (BuildContext context) => alertDialog
-    );
+        context: context, builder: (BuildContext context) => alertDialog);
+  }
+
+  void DataColl() async {
+    Db db = new Db("mongodb://localhost:27017/people");
+    await db.open();
+    print('connected to database');
+    DbCollection coll = db.collection("students");
+    await coll.insert({
+      "name": name,
+      "dob": dob,
+      "phone": phone,
+      "email": email,
+      "password": pass,
+      "cPass": cPass,
+      "location": loc
+    });
+    var student = await coll.find().toList();
+    print(student);
+    await db.close();
   }
 }
-
-
