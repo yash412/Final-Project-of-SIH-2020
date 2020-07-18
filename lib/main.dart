@@ -193,7 +193,7 @@ class Registration extends StatelessWidget {
   }
 
   void DataColl() async {
-    Db db = new Db("mongodb://10.0.2.2:27017/people");
+    Db db = new Db("mongodb://localhost:27017/people");
     await db.open();
     print('connected to database');
     DbCollection coll = db.collection("students");
